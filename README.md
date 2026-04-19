@@ -1,6 +1,10 @@
-# Todo App (Django + React)
+# Todo App
 
 A simple full-stack todo application built with Django and React.
+
+## Project Board
+
+You can track the project’s progress, tasks, and roadmap [here](https://github.com/users/alexandru-j/projects/2).
 
 ## Tech Stack
 

@@ -1,0 +1,10 @@
+# Docker-related files
+Dockerfile
+Dockerfile.dev
+.dockerignore
+
+# Ignore cache
+__pycache__/
+
+# Ignore Python virtual environment directories
+venv/

@@ -1,0 +1,65 @@
+x-database-variables: &database-variables
+  POSTGRES_USER: ${DATABASE_USER}
+  POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+  POSTGRES_DB: ${DATABASE_NAME}
+
+x-backend-variables: &backend-variables
+  BUILD: ${BUILD}
+  SECRET_KEY: ${BACKEND_SECRET_KEY}
+  ALLOWED_HOSTS: ${BACKEND_ALLOWED_HOSTS}
+  DATABASE_NAME: ${DATABASE_NAME}
+  DATABASE_USER: ${DATABASE_USER}
+  DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  DATABASE_HOST: ${DATABASE_HOST}
+  DATABASE_PORT: ${DATABASE_PORT}
+
+services:
+  database:
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      <<: *database-variables
+    networks:
+      - local
+    volumes:
+      - pgdata:/var/lib/postgresql/18/docker
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      <<: *backend-variables
+    depends_on:
+      - "database"
+    networks:
+      - local
+    volumes:
+      - staticfiles:/app/backend/staticfiles
+      - mediafiles:/app/backend/media
+    command: >
+      sh -c "python manage.py waitdb &&
+             python manage.py migrate &&
+             gunicorn todo.wsgi:application -w 4 -b 0.0.0.0:8000"
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - "backend"
+    networks:
+      - local
+    volumes:
+      - staticfiles:/app/backend/staticfiles
+      - mediafiles:/app/backend/media
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+volumes:
+  pgdata:
+  staticfiles:
+  mediafiles:
+
+networks:
+  local:
+    driver: bridge
